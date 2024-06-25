@@ -119,7 +119,7 @@ public function insert_sub_catagory() {
     }
 }
 
-//update main catagory
+//update sub catagory
 public function update_sub_catagory() {
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $request = json_decode(file_get_contents('php://input'), true);
@@ -149,7 +149,7 @@ public function update_sub_catagory() {
         echo json_encode(array('status' => 'failure', 'message' => 'Invalid request method'));
     }
 }
-//get main catagory list
+//get sub catagory list
 public function get_all_sub_cat() {
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $request = json_decode(file_get_contents('php://input'), true);
@@ -157,12 +157,12 @@ public function get_all_sub_cat() {
             $deviceType = $request['deviceType'];
             $username = $request['username'];
 
-            $sub_cat_id='';
+            $main_cat_id='';
             
-            if (isset($request['sub_cat_id']))
-            $sub_cat_id=$request['sub_cat_id'];
+            if (isset($request['main_cat_id']))
+            $main_cat_id=$request['main_cat_id'];
 
-            $response = $this->model->get_all_sub_catDB($sub_cat_id);
+            $response = $this->model->get_all_sub_catDB($main_cat_id);
             echo json_encode($response);
         
     } else {

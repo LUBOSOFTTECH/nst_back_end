@@ -195,7 +195,119 @@ public function insert_main_variantDB($var_name, $username) {
 
     return $response;
 }
+//update main catagory
 
+public function update_main_variantDB($var_name,$deleted_flg,$main_var_id,$username) {
+    $response = array();
+    $query = sprintf("UPDATE `defaultdb`.`MAIN_VARIANT` SET `MAIN_VAR_NAME` = '%s', `DELETED_FLG` ='%s', `LAST_UPD_USER` = '%s' WHERE `MAIN_VAR_ID` = '%s';", $var_name, $deleted_flg, $username, $main_var_id);
+    $stmt = $this->db->prepare($query);
+    $result = $stmt->execute();
+    
+    if ($result) {
+        $response['status'] = "success";
+        $response['message'] = $var_name . " updated in main variant";
+    } else {
+        $response['status'] = "failure";
+        $response['message'] = $var_name . " update failed in main variant";
+    }
+
+    return $response;
+}
+
+//get main variant list
+public function get_all_main_varDB() {
+    $query = "SELECT * FROM `defaultdb`.`MAIN_VARIANT` WHERE DELETED_FLG !='D'";
+    $stmt = $this->db->prepare($query);
+    $stmt->execute();
+
+    $response = array();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if ($result) {
+        $response['status'] = "success";
+        $response['message'] = $result;
+    } else {
+        $response['status'] = "failure";
+        $response['message'] = "No Records available";
+    }
+
+    return $response;
+}
+
+
+    //SUB VARIANT QUERY CHANGES
+
+//insert a sub catagory
+
+public function insert_sub_variantDB($var_name,$username,$main_var_id) {
+    $response = array();
+
+    // Prepare and execute the select query
+    $query = sprintf("SELECT * FROM `defaultdb`.`SUB_VARIANT` WHERE DELETED_FLG != 'D' AND MAIN_VAR_ID = '%s' AND LOWER(SUB_VAR_NAME) = LOWER('%s')",$main_var_id,$var_name);
+    $stmt = $this->db->prepare($query);
+    $stmt->execute();
+
+    // Fetch the results
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (empty($result)) {
+        // If no existing record, prepare and execute the insert query
+        $query = sprintf("INSERT INTO `defaultdb`.`SUB_VARIANT` (`SUB_VAR_NAME`, `DELETED_FLG`, `CREATED_USER`, `LAST_UPD_USER`, `MAIN_VAR_ID`) VALUES ('%s', '%s', '%s', '%s', '%s')",$var_name,'N',$username,$username,$main_var_id);
+        $stmt = $this->db->prepare($query);
+        $result = $stmt->execute();
+
+        if ($result) {
+            $response['status'] = "success";
+            $response['message'] = $var_name . " added to sub category";
+        } else {
+            $response['status'] = "failure";
+            $response['message'] = $var_name . " addition failed in sub category";
+        }
+    } else {
+        $response['status'] = "failure";
+        $response['message'] = $var_name . " already exists in sub category";
+    }
+
+    return $response;
+}
+//update sub catagory
+
+public function update_sub_variantDB($var_name,$deleted_flg,$main_var_id,$username,$sub_var_id) {
+    $response = array();
+    $query = sprintf("UPDATE `defaultdb`.`SUB_VARIANT` SET `SUB_VAR_NAME` = '%s', `DELETED_FLG` ='%s', `LAST_UPD_USER` = '%s' WHERE `MAIN_VAR_ID` = '%s' AND `SUB_VAR_ID` = '%s' ;", $var_name, $deleted_flg, $username, $main_var_id,$sub_var_id);
+    $stmt = $this->db->prepare($query);
+    $result = $stmt->execute();
+    
+    if ($result) {
+        $response['status'] = "success";
+        $response['message'] = $var_name . " updated in sub category";
+    } else {
+        $response['status'] = "failure";
+        $response['message'] = $var_name . " update failed in sub category";
+    }
+
+    return $response;
+}
+
+//get sub catagory list
+public function get_all_sub_variantDB($main_var_id) {
+    $query = sprintf("SELECT * FROM `defaultdb`.`SUB_VARIANT` WHERE DELETED_FLG !='D' AND `MAIN_VAR_ID` = '%s'",$main_var_id);
+    $stmt = $this->db->prepare($query);
+    $stmt->execute();
+
+    $response = array();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if ($result) {
+        $response['status'] = "success";
+        $response['message'] = $result;
+    } else {
+        $response['status'] = "failure";
+        $response['message'] = "No Records available";
+    }
+
+    return $response;
+}
 
 }
 ?>
