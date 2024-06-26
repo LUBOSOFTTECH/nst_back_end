@@ -314,11 +314,7 @@ public function get_all_sub_variantDB($main_var_id) {
 
 //insert a PRODUCT
 public function insert_productDB( $prd_name,$prd_desription,$stock_unit,$price,$dis_digit,$dis_type,$main_cat_id,$sub_cat_id,$main_var_id,$sub_var_id,$username){
-    echo "Product Name: " . $prd_name . "\n";
-    echo "Price: " . $price . "\n";
-    echo "Sub Category ID: " . $sub_cat_id . "\n";
-    echo "Sub Variant ID: " . $sub_var_id . "\n";
-    $prd_code=$this->generateRandomCode();
+   $prd_code=$this->generateRandomCode();
     
     $query = sprintf("SELECT * FROM `defaultdb`.`PRODUCTS` WHERE DELETED_FLG !='D' AND LOWER(PRODUCT_NAME)=LOWER('%s') AND PRICE=%s AND SUB_CAT_ID=%s AND SUB_VAR_ID=%s",$prd_name,$price,$sub_cat_id,$sub_var_id);
     $stmt = $this->db->prepare($query);
@@ -330,7 +326,7 @@ public function insert_productDB( $prd_name,$prd_desription,$stock_unit,$price,$
     if (empty($result)) {
 
         $query = sprintf("INSERT INTO `defaultdb`.`PRODUCTS` (`PRODUCT_CODE`,`PRODUCT_NAME`,`PRODUCT_DESCRIPTION`,`STOCK_UNITS`,`PRICE`,`DIS_DIGITS`,`DIS_TYPE`,`MAIN_CAT_ID`,`SUB_CAT_ID`,`MAIN_VAR_ID`,`SUB_VAR_ID`, `DELETED_FLG`, `CREATED_USER`, `LAST_UPD_USER`) VALUES ( '%s', '%s', '%s',%d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s')",
-$prd_code, $prd_name, $prd_desription, $stock_unit, $price, $dis_digit, $dis_type, $main_cat_id, $sub_cat_id, $main_var_id, $sub_var_id, 'N', $username, $username);
+       $prd_code, $prd_name, $prd_desription, $stock_unit, $price, $dis_digit, $dis_type, $main_cat_id, $sub_cat_id, $main_var_id, $sub_var_id, 'N', $username, $username);
 
         $stmt = $this->db->prepare($query);
         $result=$stmt->execute();
@@ -353,7 +349,64 @@ $prd_code, $prd_name, $prd_desription, $stock_unit, $price, $dis_digit, $dis_typ
 
     return $response;
 }
+public function update_productDB( $prd_name,$prd_desription,$stock_unit,$price,$dis_digit,$dis_type,$main_cat_id,$sub_cat_id,$main_var_id,$sub_var_id,$username,$prd_id,$deleted_flg) {
+    $response = array();
+    $query = sprintf("UPDATE `defaultdb`.`PRODUCTS` SET `PRODUCT_NAME`='%s',`PRODUCT_DESCRIPTION`='%s',`STOCK_UNITS`=%d,`PRICE`=%d,`DIS_DIGITS`=%d,`DIS_TYPE`=%d,`MAIN_CAT_ID`=%d,`SUB_CAT_ID`=%d,`MAIN_VAR_ID`=%d,`SUB_VAR_ID`=%d, `DELETED_FLG`='%s', `CREATED_USER`='%s', `LAST_UPD_USER`='%s' WHERE `PRODUCT_ID` = '%s';", $prd_name, $prd_desription, $stock_unit, $price, $dis_digit, $dis_type, $main_cat_id, $sub_cat_id, $main_var_id, $sub_var_id, $deleted_flg, $username, $username,$prd_id);
+    $stmt = $this->db->prepare($query);
+    $result = $stmt->execute();
+    
+    if ($result) {
+        $response['status'] = "success";
+        $response['message'] = $prd_name . " updated";
+    } else {
+        $response['status'] = "failure";
+        $response['message'] = $prd_name . " update failed";
+    }
 
+    return $response;
+}
+//get sub catagory list
+public function get_all_productsDB($search ,$filterbycat , $filterbyvar , $start, $end) {
+    $search_by_text=$filterd_by_cat=$filterd_by_var='';
+    if(!empty($search))
+    {
+       $search_by_text= "AND `PRODUCT_NAME` lIKE '%".$search."%'";
+    }
+    if(!empty($filterbycat))
+    {
+       $filterd_by_cat= "AND `MAIN_CAT_ID` = ".$filterbycat." ";
+    }
+    if(!empty($filterbyvar))
+    {
+       $filterd_by_var= "AND `MAIN_VAR_ID` = ".$filterbyvar." ";
+    }
+
+    $query = sprintf("SELECT * FROM `defaultdb`.`PRODUCTS` WHERE DELETED_FLG !='D' %s %s %s LIMIT %s,%s ", $search_by_text,$filterd_by_cat,$filterd_by_var,$start, $end);
+    $stmt = $this->db->prepare($query);
+    $stmt->execute();
+    $response = array();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    //get total count
+    $query1 = sprintf("SELECT * FROM `defaultdb`.`PRODUCTS` WHERE DELETED_FLG !='D' %s %s %s", $search_by_text,$filterd_by_cat,$filterd_by_var);
+    $stmt1 = $this->db->prepare($query1);
+    $stmt1->execute();
+    $result1 = $stmt1->fetchAll(PDO::FETCH_ASSOC);
+    
+    //
+
+    if ($result) {
+        $response['status'] = "success";
+        $response['message'] = $result;
+        $response['tot_count'] = count($result1);
+    } else {
+        $response['status'] = "failure";
+        $response['message'] = "No Records available";
+        $response['tot_count'] = 0;
+    }
+
+    return $response;
+}
 function generateRandomCode() {
     // Generate three random letters
     $letters = '';
