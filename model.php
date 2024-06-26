@@ -20,7 +20,7 @@ public function insert_main_catagoryDB($cat_name,$username){
     $response = array();
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    if ($result==0) {
+    if (empty($result)) {
 
         $query = sprintf("INSERT INTO `defaultdb`.`MAIN_CATEGORY` (`MAIN_CAT_NAME`, `DELETED_FLG`, `CREATED_USER`, `LAST_UPD_USER`) VALUES ( '%s', '%s', '%s', '%s');",$cat_name,'N',$username,$username);
         $stmt = $this->db->prepare($query);
@@ -308,6 +308,73 @@ public function get_all_sub_variantDB($main_var_id) {
 
     return $response;
 }
+
+
+//PRODUCTS CHANGES
+
+//insert a PRODUCT
+public function insert_productDB( $prd_name,$prd_desription,$stock_unit,$price,$dis_digit,$dis_type,$main_cat_id,$sub_cat_id,$main_var_id,$sub_var_id,$username){
+    echo "Product Name: " . $prd_name . "\n";
+    echo "Price: " . $price . "\n";
+    echo "Sub Category ID: " . $sub_cat_id . "\n";
+    echo "Sub Variant ID: " . $sub_var_id . "\n";
+    $prd_code=$this->generateRandomCode();
+    
+    $query = sprintf("SELECT * FROM `defaultdb`.`PRODUCTS` WHERE DELETED_FLG !='D' AND LOWER(PRODUCT_NAME)=LOWER('%s') AND PRICE=%s AND SUB_CAT_ID=%s AND SUB_VAR_ID=%s",$prd_name,$price,$sub_cat_id,$sub_var_id);
+    $stmt = $this->db->prepare($query);
+    $stmt->execute();
+
+    $response = array();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (empty($result)) {
+
+        $query = sprintf("INSERT INTO `defaultdb`.`PRODUCTS` (`PRODUCT_CODE`,`PRODUCT_NAME`,`PRODUCT_DESCRIPTION`,`STOCK_UNITS`,`PRICE`,`DIS_DIGITS`,`DIS_TYPE`,`MAIN_CAT_ID`,`SUB_CAT_ID`,`MAIN_VAR_ID`,`SUB_VAR_ID`, `DELETED_FLG`, `CREATED_USER`, `LAST_UPD_USER`) VALUES ( '%s', '%s', '%s',%d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s')",
+$prd_code, $prd_name, $prd_desription, $stock_unit, $price, $dis_digit, $dis_type, $main_cat_id, $sub_cat_id, $main_var_id, $sub_var_id, 'N', $username, $username);
+
+        $stmt = $this->db->prepare($query);
+        $result=$stmt->execute();
+
+        if ($result) {
+            $response['status'] = "success";
+            $response['message'] = $prd_name . " added";
+        } else {
+            $response['status'] = "failure";
+            $response['message'] = $prd_name . " added failed";
+        }
+
+    } else {
+        $response['status'] = "failure";
+        $response['message'] = $prd_name." already exist";
+    }
+
+
+   
+
+    return $response;
+}
+
+function generateRandomCode() {
+    // Generate three random letters
+    $letters = '';
+    for ($i = 0; $i < 3; $i++) {
+        $letters .= chr(rand(65, 90)); // ASCII values for A-Z
+    }
+
+    // Generate five random digits
+    $digits = '';
+    for ($i = 0; $i < 5; $i++) {
+        $digits .= rand(0, 9);
+    }
+
+    // Combine letters and digits
+    $randomCode = $letters . $digits;
+    
+    return $randomCode;
+}
+
+
+
 
 }
 ?>
